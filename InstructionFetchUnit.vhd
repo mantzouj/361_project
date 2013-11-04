@@ -47,13 +47,13 @@ begin
    shift_imm(16) <= immediate(15);
    shift_imm(15 downto 0) <= immediate;
    
-   bchzro: entity and_gate port map(branch, zero, b_and_z);
+   bchzro: entity work.and_gate port map(branch, zero, b_and_z);
    
-   pc_4  : entity fulladder_n generic map(30) port map('1', pc, "000000000000000000000000000000", c_out0,pc_plus_4);
-   pc_imm: entity fulladder_n generic map(30) port map('0', pc_plus_4, shift_imm, c_out1,pc_plus_imm); --I don't *think* there are any overflow worries for these adders
+   pc_4  : fulladder_n generic map(30) port map('1', pc, "000000000000000000000000000000", c_out0,pc_plus_4);
+   pc_imm: fulladder_n generic map(30) port map('0', pc_plus_4, shift_imm, c_out1,pc_plus_imm); --I don't *think* there are any overflow worries for these adders
    
-   mux_0 : entity mux_n generic map(30) port map(b_and_z, pc_plus_4, pc_plus_imm, pc_plus_branch);
-   mux_1 : entity mux_n generic map(30) port map(jump, pc_plus_branch, jumpAddress, pc_next);
+   mux_0 : mux_n generic map(30) port map(b_and_z, pc_plus_4, pc_plus_imm, pc_plus_branch);
+   mux_1 : mux_n generic map(30) port map(jump, pc_plus_branch, jumpAddress, pc_next);
    
    pc_reg: entity work.register_30 port map(pc_next, clk, '1', pc);
   
