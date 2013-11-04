@@ -1,0 +1,45 @@
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity extender_16_demo is
+    port (
+       z : out std_logic_vector(31 downto 0)
+          );
+    end extender_16_demo;
+
+    architecture structural of slt_32_demo is 
+    
+    component extender_16 is 
+           port(
+                 ExtOp: in std_logic; 
+                 imm16 : in std_logic_vector(15 downto 0);  
+                 z : out std_logic_vector(31 downto 0)
+                 );
+    end component extender_16;
+        
+ 
+        signal xin : std_logic_vector(15 downto 0);
+        signal ExtOp: std_logic;
+        signal inbus : std_logic_vector(16 downto 0);
+        begin
+            extender_map: extender_16 port map (imm16=>xin, ExtOp=>ExtOp, z=>z);
+            xin<=inbus(15 downto 0);
+            ExtOp<=inbus(16);
+            
+            test_proc : process
+            begin
+                 inbus<="11101111111111111"; --ExtOp=1
+                 wait for 5 ns;
+                 
+                 inbus<="01101111111111111"; --ExtOp=0
+                 wait for 5 ns;
+                 
+                 inbus<="10101111111111111"; --ExtOp=1
+                 wait for 5 ns;
+                 
+                 inbus<="00101111111111111"; --ExtOp=0
+                 wait for 5 ns;
+                
+                wait;  
+                end process;
+        end architecture structural;
