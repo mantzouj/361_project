@@ -1,0 +1,30 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use work.eecs361_gates.all;
+
+entity extender_16 is 
+   port(
+         ExtOp: in std_logic; 
+         imm16 : in std_logic_vector(15 downto 0);  
+         z : out std_logic_vector(31 downto 0)
+         );
+         
+     end extender_16;
+     
+architecture structural of extender_16 is
+
+signal shift_imm : std_logic_vector(31 downto 0);
+signal sign_or_zero: std_logic;
+
+begin
+    
+and0_map: and_gate port map(x=>ExtOp, y=>imm16(15), z=>sign_or_zero);
+
+EXTEND: for I in 16 to 31 generate
+shift_map: shift_imm(I)<=sign_or_zero;
+end generate EXTEND;
+
+shift_imm(15 downto 0) <= imm16;
+z<=shift_imm; 
+  
+end structural;
