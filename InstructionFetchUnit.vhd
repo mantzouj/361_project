@@ -1,10 +1,11 @@
---Still requires register mapping
-
 library ieee;
 use ieee.std_logic_1164.all;
+use work.eecs361_gates.all;
+use work.eecs361.all;
 
 entity InstructionFetchUnit is
   port (
+    clk       :   in std_logic;
     immediate :   in std_logic_vector(15 downto 0);
     target    :   in std_logic_vector(25 downto 0);
     branch    :   in std_logic;
@@ -46,14 +47,14 @@ begin
    shift_imm(16) <= immediate(15);
    shift_imm(15 downto 0) <= immediate;
    
-   bchzro: entity work.and_gate port map(branch, zero, b_and_z);
+   bchzro: entity and_gate port map(branch, zero, b_and_z);
    
-   pc_4  : entity work.fulladder_n generic map(30) port map('1', pc, "000000000000000000000000000000", c_out0,pc_plus_4);
-   pc_imm: entity work.fulladder_n generic map(30) port map('0', pc_plus_4, shift_imm, c_out1,pc_plus_imm); --I don't *think* there are any overflow worries for these adders
+   pc_4  : entity fulladder_n generic map(30) port map('1', pc, "000000000000000000000000000000", c_out0,pc_plus_4);
+   pc_imm: entity fulladder_n generic map(30) port map('0', pc_plus_4, shift_imm, c_out1,pc_plus_imm); --I don't *think* there are any overflow worries for these adders
    
-   mux_0 : entity work.mux_n generic map(30) port map(b_and_z, pc_plus_4, pc_plus_imm, pc_plus_branch);
-   mux_1 : entity work.mux_n generic map(30) port map(jump, pc_plus_branch, jumpAddress, pc_next);
+   mux_0 : entity mux_n generic map(30) port map(b_and_z, pc_plus_4, pc_plus_imm, pc_plus_branch);
+   mux_1 : entity mux_n generic map(30) port map(jump, pc_plus_branch, jumpAddress, pc_next);
    
-   --something mapping the pc register to input pc_next and output pc
+   pc_reg: entity work.register_30 port map(pc_next, clk, '1', pc);
   
 end structural;
