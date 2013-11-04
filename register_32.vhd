@@ -58,4 +58,4 @@ entity register_32 is
     Dout <= tempout;
 
                                        
-end architecture structural;
+end structural;
