@@ -26,7 +26,7 @@ architecture structural of single_cycle_processor is
    signal Dout : std_logic_vector(31 downto 0);
 
 begin
-   reg       : entity work.register_32 port map (Din, enable, clk, Dout);
+   reg       : entity work.register_32 port map (Din, clk, enable, Dout);
    regfile   : entity work.registerfile port map (WRenable, clk, RA, RB, RW, busW, busA, busB);
    
    process
