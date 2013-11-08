@@ -3,7 +3,7 @@ use ieee.std_logic_1164.all;
 use work.eecs361_gates.all;
 use work.eecs361.all;
 
-entity InstructionFetchUnit is
+entity instruction_fetch_unit is
   port (
     clk : in std_logic;
     immediate : in std_logic_vector(15 downto 0);
@@ -13,9 +13,9 @@ entity InstructionFetchUnit is
     jump      : in std_logic;
     instrOut  : out std_logic_vector(31 downto 0)
   );
-end InstructionFetchUnit;
+end instruction_fetch_unit;
 
-architecture structural of InstructionFetchUnit is
+architecture structural of instruction_fetch_unit is
    signal jumpAddress    : std_logic_vector(29 downto 0);
    signal shift_imm      : std_logic_vector(31 downto 0);
    signal b_and_z        : std_logic;
