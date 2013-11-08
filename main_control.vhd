@@ -71,9 +71,12 @@ entity main_control is
   orExtOp0 : or_gate port map (LW, SW, temp(2));
   orExtOp1 : or_gate port map (ADDI, temp(2),ExtOp);
   
-  orALU0op0 : or_gate port map (BEQ, BNE, ALUop(0));
-  orALU1op1 : or_gate port map (ADDI, '0', ALUop(1));   --where should ADDI go? --customize these here to our ALU or will the ALUcontrol handle it?
-  orALU2op2 : or_gate port map (Rtype, ADDI, ALUop(2));   
+
+  -----SHOULD WE HAVE AN ALUop(3) FOR BNE in order to distinguish between BNE and BEQ?  
+  orALU0op0 : or_gate port map (BEQ, BNE, ALUop(0));    --customize these here to our ALU or will the ALUcontrol handle it?
+  orALU1op1 : or_gate port map (ADDI, '0', ALUop(1));   --where should ADDI go? I put it here because it's not rtype, but needs to be represented.
+  orALU2op2 : or_gate port map (Rtype, ADDI, ALUop(2));   --take ADDI out of ALUop(2) and assign to ALUop(1)?
+  ---ALUop(0)<=BEQ; ALUop(0)<=BNE; ALUop(0)<=ADDI; ALUop(0)<=Rtype;
     
   
   Jump <= '0';                             
