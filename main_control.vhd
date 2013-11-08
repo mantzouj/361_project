@@ -3,7 +3,6 @@ use ieee.std_logic_1164.all;
 use work.eecs361_gates.all;
 use work.eecs361.all;
 
----
 
 entity main_control is
   port (
@@ -14,8 +13,8 @@ entity main_control is
     MemtoReg : out std_logic;
     RegWrite : out std_logic;
     MemWrite : out std_logic;
-    Branch : out std_logic;
-    Jump : out std_logic;
+    BranchEQ : out std_logic;
+    BranchNEQ: out std_logic;
     ExtOp : out std_logic;
     ALUop : out std_logic_vector(2 downto 0)
     );
@@ -42,7 +41,7 @@ entity main_control is
   signal BEQ : std_logic;
   signal BNE : std_logic;
   signal ADDI : std_logic;
-  signal temp : std_logic_vector(2 downto 0);
+  signal temp : std_logic_vector(3 downto 0);
   
   
   begin
@@ -61,22 +60,23 @@ entity main_control is
   orALUSrc0 : or_gate port map (LW,SW,temp(1));
   orALUSrc1 : or_gate port map (ADDI,temp(1),ALUSrc);
     
-  orRegDst0 : or_gate port map (Rtype, ADDI, RegDst);
-    
+  RegDst <= Rtype; --I don't think ADDI should be included
   MemtoReg <= LW;
   MemWrite <= SW;
   
-  orBranch0 : or_gate port map (BEQ, BNE, Branch);
+  BranchEQ <= BEQ; --beq
+  BranchNEQ <= BNE;  --bne
   
-  orExtOp0 : or_gate port map (LW, SW, temp(2));
-  orExtOp1 : or_gate port map (ADDI, temp(2),ExtOp);
-  
+  orExtOp0 : or_gate port map (LW, SW, temp(2)); --I think this signal is unneccesary w/o the ori instr.  
+  orExtOp1 : or_gate port map (ADDI, temp(2),ExtOp); --But let's keep it anyway? 
 
+  --ALU KEY
+  --R-type => (100) --I_TYPE_ADD(ADDI,LW,SW)=>(010)  --I_TYPE_SUB(BNE, BEQ)=>(001) 
 
-  orALU0op0 : or_gate port map (BEQ, BNE, ALUop(0));
-  orALU1op1 : or_gate port map (ADDI, '0', ALUop(1));
-  orALU2op2 : or_gate port map (Rtype, '0', ALUop(2));
+  ALUop(2)<=Rtype;
+  orAluop0: or_gate port map (LW, SW, temp(3));   
+  orAluop1: or_gate port map (ADDI, temp(3), ALUop(1));
+  orAluop2: or_gate port map (BNE, BEQ, ALUop(0));  
     
-  
-  Jump <= '0';                             
-end structural;
+end architecture structural;
+
