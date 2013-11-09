@@ -7,7 +7,6 @@ entity instruction_fetch_unit is
   port (
     clk : in std_logic;
     immediate : in std_logic_vector(15 downto 0);
-    target : in std_logic_vector(25 downto 0);
     brancheq : in std_logic;
     branchneq: in std_logic;
     zero : in std_logic;
