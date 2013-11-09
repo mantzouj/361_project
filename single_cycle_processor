@@ -1,3 +1,4 @@
+
 library ieee;
 use ieee.std_logic_1164.all;
 use work.eecs361_gates.all;
@@ -31,19 +32,28 @@ begin
    
    process
    begin
-      enable <= '1';   
-      Din <= "10101010101010101010101010101010";
-      clk <= '0';
-      wait for 100 ns;
+      WRenable <= '1';   
+      busW <= "10101010101010101010101010101010";
+      RA <= "10000";
+      RB <= "00000";
+      RW <= "10000";
       clk <= '1';
       wait for 100 ns;
       clk <= '0';
       wait for 100 ns;
+      busW <= "11111111000000001111111100000000";
+      RW <= "11000";
       clk <= '1';
       wait for 100 ns;
+
       clk <= '0';
       wait for 100 ns;
-      Din <= "01010101010101010101010101010101";
+      clk <= '1';
+      RB <= "11000";
+      wait for 100 ns;
+      --Din <= "01010101010101010101010101010101";
+      clk <= '0';
+      wait for 100 ns;
       clk <= '1';
       wait for 100 ns;
       clk <= '0';
