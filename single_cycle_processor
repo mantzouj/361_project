@@ -1,4 +1,3 @@
-
 library ieee;
 use ieee.std_logic_1164.all;
 use work.eecs361_gates.all;
@@ -51,7 +50,7 @@ begin
       clk <= '1';
       RB <= "11000";
       wait for 100 ns;
-      --Din <= "01010101010101010101010101010101";
+      ---Din <= "01010101010101010101010101010101";
       clk <= '0';
       wait for 100 ns;
       clk <= '1';
