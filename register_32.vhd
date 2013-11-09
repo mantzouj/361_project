@@ -42,7 +42,7 @@ entity register_32 is
     
   GEN_dff:
     for i in 0 to 31 generate
-        mux0 : mux port map(enable, tempout(i), Din(i), tempin(i));
+        mux0 : mux port map (enable, tempout(i), Din(i), tempin(i));
         dffX : dff port map (clk, tempin(i), tempout(i));
     end generate GEN_dff;
 
