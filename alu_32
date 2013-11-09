@@ -1,0 +1,148 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use work.eecs361_gates.all;
+
+entity alu_32 is 
+    port(
+          control: in std_logic_vector(2 downto 0); 
+          x : in std_logic_vector(31 downto 0); 
+          y : in std_logic_vector(31 downto 0); 
+          z : out std_logic_vector(31 downto 0);
+          overflow: out std_logic;
+          zero_flag: out std_logic;
+          cout: out std_logic 
+           );
+          
+      end alu_32;
+      
+architecture structural of alu_32 is
+    
+    --Declare all necessary components: adder/subtractor, shifter and set less than
+    
+    component full_adder_subtractor_32 is  
+        port(
+              x : in std_logic_vector(31 downto 0);
+              y : in std_logic_vector(31 downto 0);
+              control : in std_logic;
+              z : out std_logic_vector(31 downto 0);
+              cout : out std_logic;
+              overflow: out std_logic
+              );
+         end component full_adder_subtractor_32;
+          
+        component slt_32 is 
+           port(
+                x : in std_logic_vector(31 downto 0); 
+                y : in std_logic_vector(31 downto 0); 
+                z : out std_logic_vector(31 downto 0);
+                overflow: out std_logic;
+                cout: out std_logic 
+                );
+        end component slt_32;
+        
+        component sll_32 is  
+            port(
+                  x : in std_logic_vector(31 downto 0); --the number to shift
+                  y : in std_logic_vector(31 downto 0); --the amount to shift by
+                  z : out std_logic_vector(31 downto 0) --the result of the shift
+                  );
+                  
+              end component sll_32;
+              
+              component mux_32 is
+                port (
+	              sel   : in  std_logic;
+	              src0  : in  std_logic_vector(31 downto 0);
+	              src1  : in  std_logic_vector(31 downto 0);
+	              z	    : out std_logic_vector(31 downto 0)
+                );
+              end component mux_32;
+              
+              component mux is
+                port (
+	              sel	  : in	std_logic;
+	              src0  :	in	std_logic;
+	              src1  :	in	std_logic;
+	              z	  : out std_logic
+                );
+              end component mux;
+              
+              
+              signal z_sll: std_logic_vector(31 downto 0);
+              signal z_slt: std_logic_vector(31 downto 0);
+              signal z_and: std_logic_vector(31 downto 0);
+              signal z_or: std_logic_vector(31 downto 0);
+              signal z_add_sub: std_logic_vector(31 downto 0);
+              signal z_sll_slt: std_logic_vector(31 downto 0);
+              signal z_and_or: std_logic_vector(31 downto 0);
+              signal z3: std_logic_vector(31 downto 0); 
+              signal or_test: std_logic_vector(32 downto 0);
+              signal z_temp: std_logic_vector(31 downto 0); 
+              signal zero: std_logic;
+              signal of_add: std_logic;
+              signal cout_add: std_logic;
+              signal of_slt: std_logic;
+              signal cout_slt: std_logic;
+              signal of_default: std_logic;
+              signal cout_default: std_logic;
+              signal of_sll_slt: std_logic;
+              signal of_3: std_logic;
+              signal cout_sll_slt: std_logic;
+              signal cout_3: std_logic;
+      
+               
+              
+              begin
+              zero<='0';
+              --Compute the result and then decide which to output based on your control code
+              -- 000=sll, 001=slt,010=and, 011=or, 100=add, 101=sub
+              
+              --Compute sll
+              sll1_map: sll_32 port map (x=>x, y=>y, z=>z_sll);
+              
+              --Compute slt
+              slt1_map: slt_32 port map (x=>x, y=>y, z=>z_slt, overflow=>of_slt, cout=>cout_slt);
+              
+              --Compute and
+              and1_map: and_gate_32 port map (x=>x, y=>y, z=>z_and);
+              
+              --Compute or
+              or1_map: or_gate_32 port map (x=>x, y=>y, z=>z_or);
+              
+              --Compute add/sub
+              add_sub_map1: full_adder_subtractor_32 port map (x=>x, y=>y, control=>control(0), z=>z_add_sub, overflow=>of_add, cout=>cout_add);
+              
+              --Set default cout and default overflow to be 0.
+              and2_map: and_gate port map(x=>cout_default, y=>zero, z=>cout_default); 
+              and3_map: and_gate port map(x=>of_default, y=>zero, z=>of_default); 
+              
+              --Determine Z
+              mux1_map: mux_32 port map(sel=>control(0), src0=>z_and, src1=>z_or, z=>z_and_or); 
+              mux2_map: mux_32 port map(sel=>control(0), src0=>z_sll, src1=>z_slt, z=>z_sll_slt); 
+              mux3_map: mux_32 port map (sel=>control(1), src0=>z_sll_slt, src1=>z_and_or, z=>z3);
+              mux4_map: mux_32 port map (sel=>control(2), src0=>z3, src1=>z_add_sub, z=>z_temp);
+             
+             --Determine OF
+             mux5_map: mux port map(sel=>control(0), src0=>of_default, src1=>of_slt, z=>of_sll_slt); 
+             mux6_map: mux port map(sel=>control(1), src0=>of_sll_slt, src1=>of_default, z=>of_3); 
+             mux7_map: mux port map (sel=>control(2), src0=>of_3, src1=>of_add, z=>overflow);
+
+             --Determine Cout
+             mux8_map: mux port map(sel=>control(0), src0=>cout_default, src1=>cout_slt, z=>cout_sll_slt); 
+             mux9_map: mux port map(sel=>control(1), src0=>cout_sll_slt, src1=>cout_default, z=>cout_3); 
+             mux10_map: mux port map (sel=>control(2), src0=>cout_3, src1=>cout_add, z=>cout);             
+                       
+              --Determine the Zero Flag: zero=0 if any bit in z is set, zero=1 if every bit in z is clear 
+              
+                 --clear the first bit in or_test array
+                  and4_map: and_gate port map(x=>or_test(0), y=>zero, z=>or_test(0));  
+              
+              TEST_FOR_SET_BITS: for I in 0 to 31 generate
+              test1: or_gate port map (x=>z_temp(I), y=>or_test(I), z=>or_test(I+1));  
+              end generate TEST_FOR_SET_BITS;
+              
+              not_map0: not_gate port map(x=>or_test(32), z=>zero_flag); 
+           
+              z<=z_temp;
+              
+          end structural;
