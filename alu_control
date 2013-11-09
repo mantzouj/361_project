@@ -1,0 +1,96 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use work.eecs361_gates.all;
+use work.eecs361.all;
+
+
+entity alu_control is
+  port (
+    --Inputs
+    ALUop : in std_logic_vector(2 downto 0);
+    funct: in std_logic_vector(5 downto 0);
+    
+    --Outputs
+    ALUctrl: out std_logic_vector(2 downto 0);
+    Shift: out std_logic --Additional signal for data path (says whether ALU input is shamt or not)
+  );
+end alu_control;
+
+architecture structural of alu_control is
+  
+    component and_gate_3in is
+    port (
+      t   : in  std_logic;
+      u   : in  std_logic;
+      v   : in  std_logic;
+      z   : out std_logic
+      );
+  end component and_gate_3in;
+  
+  
+  component and_gate_6in is
+    port (
+      t   : in  std_logic;
+      u   : in  std_logic;
+      v   : in  std_logic;
+      w   : in  std_logic;
+      x   : in  std_logic;
+      y   : in  std_logic;
+      z   : out std_logic
+      );
+  end component and_gate_6in;
+  
+  --Not of inputs
+  signal notALUop : std_logic_vector(2 downto 0);  
+  signal notfunct: std_logic_vector(5 downto 0);
+  
+  --Instruction Type
+  signal ITypeAdd: std_logic; 
+  signal ITypeSub: std_logic; 
+  signal Add_Inst: std_logic; 
+  signal Addu_Inst: std_logic; 
+  signal Sub_Inst: std_logic; 
+  signal Subu_Inst: std_logic; 
+  
+  --ALU Controls 
+  signal Add_Op: std_logic; 
+  signal Sub_Op: std_logic; 
+  signal And_Op: std_logic; 
+  signal Or_Op: std_logic; 
+  signal Slt_Op: std_logic; 
+  signal Sll_Op: std_logic; 
+  signal temp: std_logic_vector(2 downto 0);
+  
+  begin 
+  --not inputs
+  not_map0 : not_gate_n generic map (n => 3) port map (ALUop, notALUop);
+  not_map1: not_gate_n generic map (n => 6) port map (funct, notfunct);
+    
+  --set Instruct Type
+  and_I_TYPE_ADD: and_gate_3in port map (notALUop(2),ALUop(1),notALUop(0),ITypeAdd);
+  and_I_TYPE_SUB: and_gate_3in port map(notALUop(2), notALUop(1), ALUop(0), ITypeSub); 
+  and_add_Inst: and_gate_6in port map(funct(5),notfunct(4), notfunct(3), notfunct(2), notfunct(1), notfunct(0), Add_Inst); 
+  and_addu_Inst: and_gate_6in port map(funct(5),notfunct(4), notfunct(3), notfunct(2), notfunct(1), funct(0), Addu_Inst); 
+  and_sub_Inst: and_gate_6in port map(funct(5),notfunct(4), notfunct(3), notfunct(2), funct(1), notfunct(0), Sub_Inst);
+  and_subu_Inst: and_gate_6in port map(funct(5),notfunct(4), notfunct(3), notfunct(2), funct(1), funct(0), Subu_Inst);
+
+ --set ALU Ops
+ or_Add0: or_gate port map (ITypeAdd, Add_Inst, temp(0));
+ or_Add1: or_gate port map (temp(0), Addu_Inst, Add_Op);
+ or_Sub0: or_gate port map (ITypeSub, Sub_Inst, temp(1));
+ or_Sub1: or_gate port map (temp(1), Subu_Inst, Sub_Op);
+ and_And: and_gate_6in port map(funct(5),notfunct(4), notfunct(3), funct(2), notfunct(1), notfunct(0), And_Op);
+ and_Or: and_gate_6in port map(funct(5),notfunct(4), notfunct(3), funct(2), notfunct(1), funct(0), Or_Op);
+ and_Slt: and_gate_6in port map(funct(5),notfunct(4), funct(3), notfunct(2), funct(1), notfunct(0), Slt_Op);
+ and_Sll: and_gate_6in port map(notfunct(5),notfunct(4), notfunct(3), notfunct(2), notfunct(1), notfunct(0), Sll_Op);
+ 
+ --Set Outputs
+ or_ALUCtrl0: or_gate port map(Add_Op, Sub_Op, ALUctrl(2));   
+ or_ALUCtrl1: or_gate port map(And_Op, Or_Op, ALUctrl(1));   
+ or_ALUCtrl2: or_gate port map(Slt_Op, Or_Op, temp(2));   
+ or_ALUCtrl3: or_gate port map(temp(2), Sub_Op, ALUctrl(0));  
+ 
+ Shift<=Sll_Op;
+ 
+ end architecture structural;  
+   
