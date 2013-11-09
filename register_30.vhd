@@ -11,7 +11,6 @@ entity register_30 is
       Din: in std_logic_vector(29 downto 0);
       clk: in std_logic;
       enable : in std_logic;
-      --reset: in std_logic;
       Dout: out std_logic_vector(29 downto 0)
       );
   end register_30;
@@ -27,36 +26,17 @@ entity register_30 is
   end component dff;
     
   signal tempout : std_logic_vector(29 downto 0);
-  signal prein1 : std_logic_vector(29 downto 0);
-  signal prein2 : std_logic_vector(29 downto 0);
-  signal tempin : std_logic_vector(29 downto 0);
-  signal notenable : std_logic;  
-  
-  
-  
+  signal tempin : std_logic_vector(29 downto 0);  
     
   begin
-    not0 : not_gate port map (enable, notenable);
-    
-  --  and0a : and_gate port map (tempout(0), notenable, prein1(0));
-  --  and0b : and_gate port map (Din(0),enable,prein2(0));
-  --  or0 : or_gate port map (prein1(0),prein2(0),tempin(0));
-  --  dff0 : dff port map (clk, tempin(0), tempout(0));
-    
-  --  and1a : and_gate port map (tempout(1), notenable, prein1(1));
-  --  and1b : and_gate port map (Din(1),enable,prein2(1));
-  --  or1 : or_gate port map (prein1(1),prein2(1),tempin(1));
-  --  dff1 : dff port map (clk, tempin(1), tempout(1));     
       
-    GEN_dff:
-      for i in 0 to 29 generate
-        andaX : and_gate port map (tempout(i),notenable,prein1(0));
-        andbX : and_gate port map (Din(i),enable,prein2(i));
-        orX : or_gate port map (clk, tempin(i), tempout(i));      
-        dffX : dff port map (clk, tempin(i), tempout(i));
-    end generate GEN_dff;
-
-    Dout <= tempout;
+  GEN_dff:
+    for i in 0 to 29 generate
+      muxX : mux port map (enable, tempout(i), Din(i), tempin(i));    
+      dffX : dff port map (clk, tempin(i), tempout(i));
+  end generate GEN_dff;
+    
+  Dout <= tempout;
 
                                        
 end architecture structural;
