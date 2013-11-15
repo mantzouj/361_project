@@ -10,6 +10,7 @@ entity instruction_fetch_unit is
     brancheq : in std_logic;
     branchneq: in std_logic;
     zero : in std_logic;
+    aload :in std_logic; --signal to load first instruction
     reset : in std_logic; --reset entire processor
     instrOut : out std_logic_vector(31 downto 0)
   );
@@ -29,10 +30,10 @@ architecture structural of instruction_fetch_unit is
    signal c_out1 : std_logic;
    signal instrAddr : std_logic_vector(31 downto 0);
    signal din : std_logic_vector(31 downto 0);
-   signal reset : std_logic;
+   signal rst : std_logic;
    
 begin
-   reset <= '0';
+   rst <= '0';
    instrAddr(31 downto 2) <= pc(29 downto 0);
    instrAddr(1 downto 0) <= "00";
    
@@ -48,8 +49,9 @@ begin
    
    mux_0 : mux_n generic map(30) port map(branch, pc_plus_4, pc_plus_imm, pc_next);
    
-   pc_reg: entity work.register_30 port map(pc_next, clk, '1', reset, aload, pc);
+   pc_reg: entity work.register_30 port map(pc_next, clk, '1', rst, aload, pc);
    
    sram_map : sram generic map ("data/sort_corrected_branch.dat") port map ('1', '1', '0', instrAddr, din, instrOut); --edit location of mem_file
   
 end structural;
+
