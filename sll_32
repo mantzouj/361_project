@@ -1,0 +1,103 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use work.eecs361_gates.all;
+
+entity sll_32 is  
+    port(
+          x : in std_logic_vector(31 downto 0); --the number to shift
+          y : in std_logic_vector(31 downto 0); --the amount to shift by
+          z : out std_logic_vector(31 downto 0) --the result of the shift
+          );
+          
+      end sll_32;
+      
+architecture structural of sll_32 is
+    
+    component mux is
+      port (
+	    sel	  : in	std_logic;
+	    src0  :	in	std_logic;
+	    src1  :	in	std_logic;
+	    z	  : out std_logic
+      );
+    end component mux;
+    
+signal sel: std_logic_vector(4 downto 0);
+signal y_5_31: std_logic_vector(31 downto 5);
+signal padded_x: std_logic_vector(32 downto 0); --pad 1 bit
+signal level0: std_logic_vector(33 downto 0); --pad 2 bits
+signal level1: std_logic_vector(35 downto 0); --pad 4 bits
+signal level2: std_logic_vector(39 downto 0); --pad 8 bits
+signal level3: std_logic_vector(47 downto 0); --pad 16 bits
+signal zero: std_logic;
+signal one: std_logic;
+signal z_temp: std_logic_vector(31 downto 0); --temporary result
+signal or_test: std_logic_vector(27 downto 0);
+signal shift_by_32_bits: std_logic; --Set to 0 if y>=32, Set to 1 if y<32. 
+signal shift_by_32_bit_mask: std_logic_vector(31 downto 0); 
+
+begin 
+zero<='0'; --Is this legal?
+one <='1';
+
+
+
+
+--CASE 1:(amount to shift by < 32 bits) 
+
+
+GEN_SEL: for I in 0 to 4 generate
+ and1_map: and_gate port map(x=>y(I), y=>one, z=>sel(I)); --set sel to be the lower 5 bits of y. 
+end generate GEN_SEL;
+
+GEN_PADDED_X_1: for I in 0 to 31 generate     
+and1_map: and_gate port map(x=>x(I), y=>one, z=>padded_x(I+1)); --set uper 32 bits of padded-x to upper 32 bits of x
+end generate GEN_PADDED_X_1;
+
+and2_map: and_gate port map(x=>padded_x(0), y=>zero, z=>padded_x(0)); --clear lower 1 bits of padded x
+
+GEN_PADDED_LEVEL0: for I in 0 to 1 generate 
+and3_map: and_gate port map(x=>level0(I), y=>zero, z=>level0(I)); --clear lower 2 bits of level 0
+end generate GEN_PADDED_LEVEL0;
+
+GEN_PADDED_LEVEL1: for I in 0 to 3 generate 
+and4_map: and_gate port map(x=>level1(I), y=>zero, z=>level1(I)); --clear lower 4 bits of level 1
+end generate GEN_PADDED_LEVEL1;
+
+GEN_PADDED_LEVEL2: for I in 0 to 7 generate 
+and5_map: and_gate port map(x=>level2(I), y=>zero, z=>level2(I)); --clear lower 8 bits of level 2
+end generate GEN_PADDED_LEVEL2;
+
+GEN_PADDED_LEVEL3: for I in 0 to 15 generate 
+and6_map: and_gate port map(x=>level3(I), y=>zero, z=>level3(I)); --clear lower 16 bits of level 3
+end generate GEN_PADDED_LEVEL3;
+
+
+GEN_LEVELS: for I in 0 to 31 generate
+level0_map: mux port map(sel=>sel(0), src0=>padded_x(1+I), src1=>padded_x(I), z=>level0(I+2));  
+level1_map: mux port map(sel=>sel(1), src0=>level0(2+I), src1=>level0(I), z=>level1(I+4));
+level2_map: mux port map(sel=>sel(2), src0=>level1(4+I), src1=> level1(I), z=>level2(I+8));
+level3_map: mux port map(sel=>sel(3), src0=>level2(8+I), src1=> level2(I), z=>level3(I+16));
+level4_map: mux port map(sel=>sel(4), src0=>level3(16+I), src1=> level3(I), z=>z_temp(I));
+end generate GEN_LEVELS;
+
+--CASE 2: y(amount to shift by >= 32 bits)
+--Test to see if y >= 32 bits. Are any of the top 27 bits set? 
+
+   --clear the first bit in or_test array
+   and7_map: and_gate port map(x=>or_test(0), y=>zero, z=>or_test(0));   
+
+TEST_UPPER_Y_BITS: for I in 5 to 31 generate
+test1: or_gate port map (x=>y(I), y=>or_test(I-5), z=>or_test(I-4));  
+end generate TEST_UPPER_Y_BITS;
+
+not_map: not_gate port map (x=>or_test(27), z=>shift_by_32_bits); 
+ --If shift_by_32_bits == 0, set our result to 0. If shift_by_32_bits == 1, keep our result as is.
+    
+GEN_SHIFT_BY_32_BIT_MASK: for I in 0 to 31 generate
+or0_map: or_gate port map(x=>zero,y=>shift_by_32_bits, z=>shift_by_32_bit_mask(I));
+end generate GEN_SHIFT_BY_32_BIT_MASK;
+
+and8_map: and_gate_32 port map(x=>z_temp, y=>shift_by_32_bit_mask, z=>z);
+
+end architecture structural;  
