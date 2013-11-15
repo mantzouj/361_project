@@ -1,0 +1,29 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use work.eecs361_gates.all;
+
+entity fulladder_2 is
+    port(
+          x : in std_logic_vector(1 downto 0);
+          y : in std_logic_vector(1 downto 0);
+          c : in std_logic;
+          z : out std_logic_vector(1 downto 0);
+          cout : out std_logic
+          );
+      end fulladder_2;
+      
+architecture structural of fulladder_2 is 
+     component fulladder is 
+         port (
+         x : in std_logic;
+         y : in std_logic;
+         c : in std_logic;
+         z : out std_logic;
+         cout : out std_logic
+      );
+     end component fulladder;
+     signal add0: std_logic;
+     begin
+     add0_map: fulladder port map (x=>x(0), y=>y(0), c=>c, z=>z(0), cout=>add0);
+     add1_map: fulladder port map (x=>x(1), y=>y(1), c=>add0, z=>z(1), cout=>cout);
+ end architecture structural;  
