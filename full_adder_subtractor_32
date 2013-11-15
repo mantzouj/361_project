@@ -1,0 +1,52 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use work.eecs361_gates.all;
+
+entity full_adder_subtractor_32 is  
+    port(
+          x : in std_logic_vector(31 downto 0);
+          y : in std_logic_vector(31 downto 0);
+          control : in std_logic;
+          z : out std_logic_vector(31 downto 0);
+          cout : out std_logic;
+          overflow: out std_logic
+          );
+          
+      end full_adder_subtractor_32;
+      
+architecture structural of full_adder_subtractor_32 is 
+   component fulladder_32 is
+             port(
+                       x : in std_logic_vector(31 downto 0);
+                       y : in std_logic_vector(31 downto 0);
+                       c : in std_logic;
+                       z : out std_logic_vector(31 downto 0);
+                       cout : out std_logic;
+                       overflow: out std_logic 
+                    );
+     end component fulladder_32;
+     
+     signal control_bit_mask: std_logic_vector(31 downto 0);
+     signal y_prime: std_logic_vector(31 downto 0); 
+     signal zero: std_logic;
+     signal cout_temp: std_logic;
+     
+     begin
+     --Control bit specifies whether to permorm an addition of subtraction. If control bit == 1, subtraction.
+     --1 xor b = !b 
+     --0 xor b = b  
+     --xor control bit with every bit of y
+     zero<='0';
+     
+     --Generate 32-bit mask from control bit
+     GEN_CONTROL_BIT_MASK: for I in 0 to 31 generate
+        or0_map: or_gate port map(x=>zero,y=>control, z=>control_bit_mask(I));
+      end generate GEN_CONTROL_BIT_MASK;
+    
+       xor0_map: xor_gate_32 port map(x=>control_bit_mask, y=>y, z=>y_prime); 
+      --add x and yprime, yprime==y IF control ==0, y_prime==inv(y) IF control ==1. Set carry in as control bit. 
+      add0_map: fulladder_32 port map (x=>x, y=>y_prime, c=>control, z=>z, cout=>cout_temp, overflow=>overflow); 
+      xor_map: xor_gate port map(x=>cout_temp, y=>control, z=>cout); 
+      
+   end architecture structural;  
+     
