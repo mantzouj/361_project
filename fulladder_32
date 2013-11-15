@@ -1,0 +1,63 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use work.eecs361_gates.all;
+
+entity fulladder_32 is
+    port(
+          x : in std_logic_vector(31 downto 0);
+          y : in std_logic_vector(31 downto 0);
+          c : in std_logic;
+          z : out std_logic_vector(31 downto 0);
+          cout : out std_logic;
+          overflow: out std_logic
+          );
+      end fulladder_32;
+      
+architecture structural of fulladder_32 is 
+   component fulladder_16 is
+             port(
+                       x : in std_logic_vector(15 downto 0);
+                       y : in std_logic_vector(15 downto 0);
+                       c : in std_logic;
+                       z : out std_logic_vector(15 downto 0);
+                       cout : out std_logic
+                    );
+     end component fulladder_16;
+     signal add0: std_logic;
+     signal z_temp: std_logic_vector(31 downto 0);
+     signal x31: std_logic;
+     signal y31: std_logic;
+     signal z31: std_logic;
+     signal not_x31: std_logic;
+     signal not_y31: std_logic;
+     signal not_z31: std_logic;
+     signal and1: std_logic;
+     signal and2: std_logic;
+     signal and3: std_logic;
+     signal and4: std_logic; 
+      
+     
+     begin
+     --Perform the addition
+     add0_map: fulladder_16 port map (x=>x(15 downto 0), y=>y(15 downto 0), c=>c, z=>z_temp(15 downto 0), cout=>add0);
+     add1_map: fulladder_16 port map (x=>x(31 downto 16), y=>y(31 downto 16), c=>add0, z=>z_temp(31 downto 16),  cout=>cout);
+     
+     --Use the result to determine if overflow has occured. MSB of X == MSB of Y != MSB of Z. 
+     x31<=x(31);
+     y31<=y(31);
+     z31<=z_temp(31);
+     --x31*y31*not(z31)+not(x31)*not(y31)*z31
+     not0_map: not_gate port map(x=>x31, z=>not_x31);
+     not1_map: not_gate port map(x=>y31, z=>not_y31);
+     not2_map: not_gate port map(x=>z31, z=>not_z31);
+     and0_map: and_gate port map(x=>x31, y=>y31, z=>and1);
+     and1_map: and_gate port map(x=>and1, y=>not_z31, z=>and2);
+     and3_map: and_gate port map(x=>not_x31, y=>not_y31, z=>and3);
+     and4_map: and_gate port map(x=>and3, y=>z31, z=>and4);
+     or0_map:  or_gate  port map(x=>and2, y=>and4, z=>overflow);
+    
+     --Return sum; 
+     z<=z_temp; 
+     
+     end architecture structural;  
+     
